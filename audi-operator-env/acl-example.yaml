@@ -1,0 +1,10 @@
+apiVersion: msk.aws.io/v1
+kind: ACL
+metadata:
+  name: example-acl
+spec:
+  clusterArn: arn:aws:kafka:us-east-1:123456789012:cluster/example-cluster/abcd1234efgh5678ijkl9012mnop3456-1
+  topicName: example-topic
+  principal: 'User:CN=example-user,OU=ExampleOU,O=ExampleOrg,L=ExampleCity,ST=ExampleState,C=ExampleCountry'
+  operation: WRITE
+  permission: ALLOW

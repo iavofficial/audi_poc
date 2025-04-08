@@ -1,0 +1,37 @@
+# Python-related ignored files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+Lib/
+# Virtual environment files
+pyvenv.cfg
+.env/
+venv/
+Scripts/
+
+# Certificate and Secret files
+
+*.crt
+*.key
+*.csr
+*.srl
+*.pem
+
+# Kubernetes kubeconfig or secrets (if any)
+*.kubeconfig
+*.secret
+
+# Docker-related ignored files
+*.env
+*.dockerignore
+
+# Backup and OS-related files
+*.swp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Git Keep Placeholder (if any)
+!.gitkeep

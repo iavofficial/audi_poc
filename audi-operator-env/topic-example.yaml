@@ -1,0 +1,9 @@
+apiVersion: msk.aws.io/v1
+kind: Topic
+metadata:
+  name: example-topic
+spec:
+  clusterArn: arn:aws:kafka:us-east-1:123456789012:cluster/example-cluster/abcd1234efgh5678ijkl9012mnop3456-1
+  name: example-topic
+  numPartitions: 3
+  replicationFactor: 2
