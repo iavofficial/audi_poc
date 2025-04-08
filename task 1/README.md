@@ -13,8 +13,7 @@ This repository contains a **Custom Kubernetes Operator** designed to manage **T
 5. [Defining Topics and ACLs](#defining-topics-and-acls)
 6. [Testing](#testing)
 7. [Known Limitations](#known-limitations)
-8. [Troubleshooting](#troubleshooting)
-9. [Project Structure](#project-structure)
+8. [Project Structure](#project-structure)
 
 ---
 
@@ -62,7 +61,88 @@ Ensure the following are set up before proceeding:
 
 ### Step 1: Create a Secret to Store Certificates
 
+**If you don’t have OpenSSL already installed, install it:**
+
+- On macOS: brew install openssl
+- On Ubuntu/Debian: sudo apt-get install openssl
+- On Windows: Install it via [OpenSSL](https://slproweb.com/products/Win32OpenSSL.html) binaries.
+
+Verify OpenSSL is installed by running:
+
+```bash
+openssl version
+```
+
+```bash
+mkdir src/certificates && cd src/certificates
+```
+
+**Generate a Certificate Authority (CA)**
+The Certificate Authority (CA) is used to sign the client certificate. Run the following commands:
+
+1. Generate the private key for the CA:
+
+```bash
+openssl genrsa -out ca.key 2048
+```
+
+This generates a private key file named `ca.key`.
+
+2. Generate the self-signed CA certificate:
+
+```bash
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 365 -out ca.crt
+```
+
+During this step, OpenSSL will prompt you for a few details (e.g., Country Name, Common Name). These details aren't critical but ensure they are descriptive and consistent.
+This generates:
+
+- `ca.crt` (CA certificate, valid for 365 days)
+- `ca.key` (private key for CA)
+  **Generate a Client Certificate**
+  The client certificate allows the operator to authenticate with the AWS MSK cluster.
+
+1. Generate the private key for the client certificate:
+
+```bash
+openssl genrsa -out client.key 2048
+```
+
+2. Create a Certificate Signing Request (CSR) for the client:
+
+```bash
+openssl req -new -key client.key -out client.csr
+```
+
+You'll be prompted to supply the same optional details as before, but ensure the Common Name (CN) is distinctive. For example: "msk-client". 3. Sign the CSR using the CA to create the client certificate:
+
+```bash
+openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365 -sha256
+```
+
+This generates:
+
+- `client.crt` (signed client certificate)
+
+**Verify the Certificates**
+Ensure you have the following files after completing the steps above:
+
+1. `ca.crt` (Certificate Authority certificate)
+2. `client.crt` (Client certificate, signed by CA)
+3. `client.key` (Private key for the client certificate)
+   You can also verify that the client certificate is signed by the CA:
+
+```bash
+openssl verify -CAfile ca.crt client.crt
+```
+
+The output should indicate that `client.crt` is valid under `ca.crt`.
+
 Store your Client Certificate, Key, and CA Certificate as a Kubernetes Secret. Run the following command:
+
+```bash
+minikube start
+```
 
 ```bash
 kubectl create secret generic msk-certificates \
@@ -156,10 +236,10 @@ Verify that the topic resource is created:
 kubectl get topics.msk.aws.io
 ```
 
-You can check the operator logs to confirm that the topic was successfully created in the AWS MSK cluster:
+Build Docker Image:
 
 ```bash
-kubectl logs -l app=audi-operator
+docker build -t audi-operator:latest .
 ```
 
 ### Step 2: Define an ACL
@@ -189,12 +269,6 @@ Verify that the ACL resource is created:
 
 ```bash
 kubectl get acls.msk.aws.io
-```
-
-Check the operator logs to confirm the ACL creation:
-
-```bash
-kubectl logs -l app=audi-operator
 ```
 
 ---
