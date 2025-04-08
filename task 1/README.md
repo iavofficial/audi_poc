@@ -146,6 +146,19 @@ Action:
 
 These examples demonstrate how audi_operator.py processes Kubernetes Custom Resources and interacts with AWS MSK to manage Kafka topics and ACLs.
 
+### Important: Configure AWS Credentials
+
+Before deploying the operator, make sure to configure your AWS credentials in the `src/audi_operator.py` file by replacing the placeholders with valid credentials. Look for the following section in the code:
+
+```python
+msk_client = boto3.client(
+    "kafka",
+    region_name="your-region",
+    aws_access_key_id="your-access-key",
+    aws_secret_access_key="your-secret-key"
+)
+```
+
 ## Setup and Installation
 
 ### Step 1: Create a Secret to Store Certificates
