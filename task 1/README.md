@@ -9,11 +9,12 @@ This repository contains a **Custom Kubernetes Operator** designed to manage **T
 1. [Overview](#overview)
 2. [Features](#features)
 3. [Pre-requisites](#pre-requisites)
-4. [Setup and Installation](#setup-and-installation)
-5. [Defining Topics and ACLs](#defining-topics-and-acls)
-6. [Testing](#testing)
-7. [Known Limitations](#known-limitations)
-8. [Project Structure](#project-structure)
+4. [How the Operator works](#how-the-operator-works)
+5. [Setup and Installation](#setup-and-installation)
+6. [Defining Topics and ACLs](#defining-topics-and-acls)
+7. [Testing](#testing)
+8. [Known Limitations](#known-limitations)
+9. [Project Structure](#project-structure)
 
 ---
 
@@ -56,6 +57,94 @@ Ensure the following are set up before proceeding:
 5. **Python 3.9+** (if building locally).
 
 ---
+
+## How the Operator works
+
+The Kubernetes operator is implemented in the `audi_operator.py` script using the [`kopf`](https://kopf.readthedocs.io/) library. It acts as the "brain" of the operator by watching for events in Kubernetes resources (`topics` and `acls`) and translating them into AWS MSK API calls.
+
+### What `audi_operator.py` Does
+
+- Watches Kubernetes Custom Resources (`topics` and `acls`) created using the associated CRDs (`crd-topics.yaml` and `crd-acls.yaml`).
+- Performs **create, update, and delete actions** on Kafka topics and ACLs by interacting with the AWS MSK APIs using the `boto3` SDK.
+- Handles communication with the AWS MSK cluster securely using **client certificates** (stored as Kubernetes Secrets).
+
+### How It Handles Events
+
+- When you create, update, or delete a `Topic` or `ACL` Custom Resource in Kubernetes, `kopf` triggers the corresponding handler in `audi_operator.py`:
+  - **Topics**:
+    - `create_topic`: Creates a Kafka topic with the specifications in the resource.
+    - `update_topic`: Logs warnings (MSK does not support dynamic updates such as partition adjustments).
+    - `delete_topic`: Deletes the specified Kafka topic.
+  - **ACLs (Access Control Lists)**:
+    - `create_acl`: Adds a rule to allow/deny access to a Kafka topic for a specific user or service.
+    - `update_acl`: Deletes and recreates the ACL with the updated rules.
+    - `delete_acl`: Removes the access control rule for the target topic.
+
+### How Communication Works
+
+- The operator uses **client certificates** (`client.crt`, `client.key`, `ca.crt`) stored in a Kubernetes Secret (`msk-certificates`) to authenticate itself with the AWS MSK cluster.
+- These certificates are automatically mounted into the operator pod at runtime and used for secure communication.
+
+### What Triggers the Operator
+
+- Creating or applying a `Topic` resource (e.g., `kubectl apply -f topic-example.yaml`) will trigger `audi_operator.py` to create that topic in AWS MSK.
+- Applying or modifying an `ACL` resource similarly creates or adjusts an access control rule on the AWS MSK cluster.
+
+### Example Workflow
+
+1. **Create a Topic Resource**:
+   Applying the following resource definition will trigger the operator to create the topic in AWS MSK:
+
+```yaml
+apiVersion: msk.aws.io/v1
+kind: Topic
+metadata:
+  name: example-topic
+spec:
+  clusterArn: arn:aws:kafka:us-east-1:123456789012:cluster/example-cluster/abcd1234efgh5678ijkl9012mnop3456-1
+  name: example-topic
+  numPartitions: 3
+  replicationFactor: 2
+```
+
+Command:
+
+```bash
+kubectl apply -f topic-example.yaml
+```
+
+Action:
+
+- The operator detects the `create` event for the `Topic` resource.
+- It calls `msk_client.create_topic` using the `boto3` client to create the topic in AWS MSK.
+
+2. **Create an ACL Resource**: Similarly, applying this resource will trigger the operator to create the ACL in AWS MSK:
+
+```yaml
+apiVersion: msk.aws.io/v1
+kind: ACL
+metadata:
+  name: example-acl
+spec:
+  clusterArn: arn:aws:kafka:us-east-1:123456789012:cluster/example-cluster/abcd1234efgh5678ijkl9012mnop3456-1
+  topicName: example-topic
+  principal: 'User:CN=example-user,OU=ExampleOU,O=ExampleOrg,L=ExampleCity,ST=ExampleState,C=ExampleCountry'
+  operation: WRITE
+  permission: ALLOW
+```
+
+Command:
+
+```bash
+kubectl apply -f acl-example.yaml
+```
+
+Action:
+
+- The operator detects the `create` event for the ACL resource.
+- It calls `msk_client.create_acl` using the `boto3` client to create the ACL in AWS MSK.
+
+These examples demonstrate how audi_operator.py processes Kubernetes Custom Resources and interacts with AWS MSK to manage Kafka topics and ACLs.
 
 ## Setup and Installation
 
