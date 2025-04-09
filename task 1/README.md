@@ -290,9 +290,42 @@ kubectl get configmap msk-config
 
 ---
 
-### Step 4: Deploy the Kubernetes Operator
+### Step 4: Build and Deploy the Kubernetes Operator
 
-Deploy the operator as a Kubernetes Deployment:
+#### **Step 4.1: Build the Docker Image**
+
+Before deploying the Kubernetes operator, you need to first build a Docker image that includes your operator code (`src/audi_operator.py`). Run the following commands to build the image:
+
+```bash
+# Navigate to the project root directory
+docker build -t audi-operator:latest .
+```
+
+This will create a Docker image with the tag `audi-operator:latest`, which will be used in the deployment.
+
+#### **Step 4.2: Push the Docker Image (If Needed)**
+
+If you're using a remote Kubernetes cluster and not running Kubernetes locally (e.g., through Minikube), you need to push the Docker image to a container registry so that it can be pulled by your Kubernetes cluster. For example, if you're using Docker Hub:
+
+```bash
+# Tag your image for Docker Hub (replace with your username)
+docker tag audi-operator:latest <your-docker-hub-username>/audi-operator:latest
+
+# Push the image to Docker Hub
+docker push <your-docker-hub-username>/audi-operator:latest
+```
+
+#### **Step 4.3: Update the Deployment File (If Needed)**
+
+If the image name or location has changed (e.g., pushed to Docker Hub or another registry), update the `image` field in `deployment.yaml` to reference the correct image:
+
+```yaml
+image: <your-docker-hub-username>/audi-operator:latest
+```
+
+#### **Step 4.4: Deploy the Kubernetes Operator**
+
+Now you can deploy the operator as a Kubernetes Deployment:
 
 ```bash
 kubectl apply -f deployment.yaml
@@ -303,8 +336,6 @@ Verify that the operator pod is running:
 ```bash
 kubectl get pods
 ```
-
-You should see an operator pod with the name `audi-operator`.
 
 ---
 
@@ -336,12 +367,6 @@ Verify that the topic resource is created:
 
 ```bash
 kubectl get topics.msk.aws.io
-```
-
-Build Docker Image:
-
-```bash
-docker build -t audi-operator:latest .
 ```
 
 ### Step 2: Define an ACL
