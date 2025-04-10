@@ -493,6 +493,4 @@ By following this documentation, the client can:
 - Create and manage Kafka Topics and ACLs declaratively.
 - Verify the secure communication between the operator and AWS MSK.
 
-With this, the task requirements have been fulfilled end-to-end.
-
 ---
