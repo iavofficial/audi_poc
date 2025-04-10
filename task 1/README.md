@@ -46,7 +46,7 @@ The **AWS MSK Kubernetes Operator** simplifies the operational tasks of creating
 
 Ensure the following are set up before proceeding:
 
-1. **AWS MSK Cluster (Existing)** with client certificate-based authentication enabled.
+1. **AWS MSK Cluster** with client certificate-based authentication enabled.
    - You must configure and deploy an AWS MSK Cluster _before_ using this operator.
    - Retrieve the ARN (Amazon Resource Name) of your Kafka cluster from the AWS Console or CLI, as it will be required for the configuration files.
 2. **AWS Credentials** with sufficient permissions to manage topics and ACLs (`boto3` will use these credentials).
