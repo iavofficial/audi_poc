@@ -46,7 +46,9 @@ The **AWS MSK Kubernetes Operator** simplifies the operational tasks of creating
 
 Ensure the following are set up before proceeding:
 
-1. **AWS MSK Cluster** with client certificate-based authentication enabled.
+1. **AWS MSK Cluster (Existing)** with client certificate-based authentication enabled.
+   - You must configure and deploy an AWS MSK Cluster _before_ using this operator.
+   - Retrieve the ARN (Amazon Resource Name) of your Kafka cluster from the AWS Console or CLI, as it will be required for the configuration files.
 2. **AWS Credentials** with sufficient permissions to manage topics and ACLs (`boto3` will use these credentials).
 3. **Certificates Files**:
    - `client.crt`: The client certificate.
@@ -91,6 +93,8 @@ The Kubernetes operator is implemented in the `audi_operator.py` script using th
 - Applying or modifying an `ACL` resource similarly creates or adjusts an access control rule on the AWS MSK cluster.
 
 ### Example Workflow
+
+**Important**: Replace the `clusterArn` placeholder in the `*.yaml` files with the actual ARN of your existing AWS MSK Kafka cluster.
 
 1. **Create a Topic Resource**:
    Applying the following resource definition will trigger the operator to create the topic in AWS MSK:
