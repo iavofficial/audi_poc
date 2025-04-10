@@ -50,10 +50,17 @@ Ensure the following are set up before proceeding:
    - You must configure and deploy an AWS MSK Cluster _before_ using this operator.
    - Retrieve the ARN (Amazon Resource Name) of your Kafka cluster from the AWS Console or CLI, as it will be required for the configuration files.
 2. **AWS Credentials** with sufficient permissions to manage topics and ACLs (`boto3` will use these credentials).
-3. **Certificates Files**:
+3. **Certificates Files**:  
+   The operator requires the following certificates for client certificate authentication with AWS MSK:
+
    - `client.crt`: The client certificate.
    - `client.key`: The client's private key.
    - `ca.crt`: The Certificate Authority used to sign the client certificate.
+
+   **If you already have these certificate files** (e.g., provided by your infrastructure team), you can skip the "Certificate Creation" section below.
+
+   **If you need to generate the certificate files yourself** (e.g., for testing or proof-of-concept purposes), follow the steps in the "Certificate Creation" section.
+
 4. **Kubernetes Cluster**:
    - Ensure `kubectl` is installed and connected to your cluster.
 5. **Python 3.9+** (if building locally).
@@ -166,6 +173,11 @@ msk_client = boto3.client(
 ## Setup and Installation
 
 ### Step 1: Create a Secret to Store Certificates
+
+The operator requires certificates (`client.crt`, `client.key`, `ca.crt`) to securely communicate with the AWS MSK cluster.  
+If you already have these files, you can skip to the next step and directly create a Kubernetes secret using your existing certificates.
+
+If you don't have these files, the following instructions will guide you through generating the required certificates using OpenSSL. This is especially useful for testing or proof-of-concept scenarios.
 
 **If you don’t have OpenSSL already installed, install it:**
 
