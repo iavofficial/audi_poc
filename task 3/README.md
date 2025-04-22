@@ -18,6 +18,7 @@ Features:
 - Integrated IAM authentication using AWS SSO/IAM Roles via IRSA.
 
 ## Folder Structure
+<pre> <code> 
 aws-rds-operator/ 
 ├── Dockerfile 
 ├── README.md 
@@ -30,6 +31,7 @@ aws-rds-operator/
 │    ├── rds_operator_irsa.yaml  
 │    ├── rds_operator_rbac.yaml 
 │    ├── postgres_cr.yaml 
+</code> </pre>
 
 
 ## Prerequisites
