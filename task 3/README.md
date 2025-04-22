@@ -20,18 +20,19 @@ Features:
 ## Folder Structure
 <pre> <code>
 task 3/
-├── .gitignore
-├── Dockerfile 
-├── README.md 
-├── requirements.txt 
-├── operator/ # Python operator logic 
-│    ├── rds_operator.py  
 ├── manifests/ # All Kubernetes manifests (CRD, RBAC, Deployments) 
-│    ├── rdsinstance_crd.yaml  
+│    ├── postgres_cr.yaml
 │    ├── rds_operator_deploy.yaml  
 │    ├── rds_operator_irsa.yaml  
 │    ├── rds_operator_rbac.yaml 
-│    ├── postgres_cr.yaml 
+│    ├── rdsinstance_crd.yaml 
+├── operator/ # Python operator logic 
+├──  ├── __init__.py 
+│    ├── rds_operator.py
+├── .gitignore
+├── Dockerfile 
+├── README.md 
+├── requirements.txt
 </code> </pre>
 
 
