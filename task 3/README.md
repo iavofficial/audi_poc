@@ -54,8 +54,15 @@ task 3/
 ## Prerequisites
 - `aws-cli` is installed and configured
 - Setup AWS SSO.
-- AWS EKS Cluster is setup
+```bash
+aws configure sso # To authenticate with AWS SSO.
+```
+- AWS EKS Cluster is setup and reachable.
 - `kubectl` CLI installed and configured.
+- To reach existing EKS Cluster
+```bash
+kubectl get nodes
+```
 - Proper AWS access setup (IAM Roles or AWS SSO).
 - IAM Role for Service Account (IRSA)
 
