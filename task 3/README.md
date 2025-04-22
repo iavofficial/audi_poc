@@ -18,8 +18,8 @@ Features:
 - Integrated IAM authentication using AWS SSO/IAM Roles via IRSA.
 
 ## Folder Structure
-<pre> <code> 
-aws-rds-operator/ 
+<pre> <code>
+├── .gitignore
 ├── Dockerfile 
 ├── README.md 
 ├── requirements.txt 
