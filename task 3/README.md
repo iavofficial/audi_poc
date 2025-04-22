@@ -1,17 +1,17 @@
-# AWS RDS Kubernetes Operator
+# AWS RDS K8s Operator
 
-Task: As part of the platform we are providing a database as a service that teams can request. Please create a custom 
+Task: As part of the platform we are providing a database as a service (DBaaS) that teams can request. Please create a custom 
 k8s operator for offering AWS RDS instance to a given stage, where credentials are stored as k8s secrets.
 
-Overview: The AWS RDS Kubernetes Operator (rds_operator.py) is a custom K8s operator built using Python with the `kopf` framework. This operator
-provides a "Database-as-a-Service" (DBaaS) model where teams can request AWS RDS instances (PostgreSQL or MySQL) using a
+Overview: The AWS RDS k8s Operator (rds_operator.py) is a custom K8s operator built using Python with the `kopf` framework. This operator
+provides a DBaaS model where teams can request AWS RDS instances with PostgreSQL or MySQL as DB engines using a
 custom resource in K8s.
 
 Assumptions: 
 - Our solution has been tailored for AWS.
 - An existing AWS EKS Cluster.
 - 3 environments names have been assumed `pre-live`, `dev` and `int` where the DB would operate.
-- Supports Postgres or MySQL DB engines within AWS RDS.
+- Multiple options of DB engine within RDS are possible, but in our solution we use Postgres and MySQL as examples.
 
 Features:
 - Kubernetes Secrets management: The operator securely stores database credentials (username, password, endpoint).
@@ -35,6 +35,20 @@ task 3/
 ├── requirements.txt
 </code> </pre>
 
+## How it works
+- RDS Operator uses CRDs and kopf handlers to provision, manage and delete RDS instances.
+  - CRDs
+    - @kopf.on.create listens for the creation of RDSInstance resources and:
+      - Provisions an AWS RDS instance using the AWS RDS API (boto3).
+      - Generates strong random credentials. 
+      - Stores these credentials and connection details as k8s Secret.
+
+    - @kopf.on.delete listens for the deletion of RDSInstance resources and:
+      - Deletes the corresponding RDS instance in AWS. 
+      - Deletes the associated k8s secret.
+  
+  - Environment/Stage specific isolation as RDS instances are scoped to different K8s namespaces based on stage/env names
+    (`pre-live`, `dev` and `int`).
 
 ## Prerequisites
 - `aws-cli` is installed and configured
@@ -52,8 +66,12 @@ cd task 3/
 ```bash
 kubectl apply -f manifests/rdsinstance_crd.yaml
 ```
+Note: DB requirements are defined in the `rdsinstance_crd.yaml` file, properties of which can be further adjusted/customized.
 
 ### 2. Configure RBAC Permissions for the operator
+- We use `ClusterRole` to grant permission to manage RDSInstance resources and K8s secrets across namespaces.
+- We use `ClusterRoleBinding` to tie the `ClusterRole` to operators SA, configured in the default namespace.
+#### Apply the RBAC Config for the operator
 ```bash
 kubectl apply -f manifests/rds_operator_rbac.yaml
 ```
@@ -71,15 +89,30 @@ kubectl apply -f manifests/rds_operator_deploy.yaml
 ```
 
 ### 4. Deploy the postgres DB as custom resource
-Create an RDSInstance custom resource in dev env.
+Create an RDSInstance custom resource in dev env with postgres as DB engine.
 ```bash
 kubectl apply -f manifests/postgres_cr.yaml
 ```
+Note: DB engine, namespace/stage, instance size, storage among others can be customized.
+
 
 ### 5. Delete the RDS CR along with its credentials
 ```bash
 kubectl delete rdsinstance dev-database -n dev
 ```
 
+## Validation
+### Check operator pod running in the `default` namespace
+```bash
+kubectl get pods -n default
+```
+### View operator logs
+```bash
+kubectl logs -l app=rds-operator -n default
+```
+### Use AWS CLI to verify RDS instance has been created
+```bash
+aws rds describe-db-instances
+```
 
 

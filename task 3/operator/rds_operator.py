@@ -13,7 +13,7 @@ except config.ConfigException:
 
 k8s_client = client.CoreV1Api()
 
-# AWS RDS client, adjust region_name
+# AWS RDS client, adjust region_name if necessary
 rds_client = boto3.client('rds', region_name='eu-central-1')
 
 
@@ -84,7 +84,7 @@ def create_rds_instance(spec, namespace, name, **kwargs):
     # Get the DB endpoint address (might be pending during creation)
     db_instance_endpoint = response['DBInstance'].get('Endpoint', {}).get('Address', 'PENDING')
 
-    # Save credentials in the namespace as a k8s secret
+    # Save credentials in the namespace as k8s secret
     create_k8s_secret(
         namespace=namespace,
         name=f"{name}-db-credentials",
@@ -116,7 +116,7 @@ def delete_rds_instance(spec, name, namespace, **kwargs):
     except Exception as e:
         raise kopf.TemporaryError(f"Error deleting RDS instance: {e}", delay=30)
 
-    # Delete the associated K8s Secret
+    # Delete the associated K8s secret
     try:
         k8s_client.delete_namespaced_secret(name=f"{name}-db-credentials", namespace=namespace)
     except client.exceptions.ApiException as e:
