@@ -1,0 +1,25 @@
+# Python-related files
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment and dependency management
+*.env
+.venv/
+.venv_bin/
+
+# Docker-related files
+*.log
+
+# Kubernetes-related files (e.g., sensitive secrets)
+*.secrets.yaml
+
+# Ignore IDE/coding editor files
+.idea/
+.vscode/
+*.swp
+
+# Other generated files
+*.egg-info/
+build/
+dist/

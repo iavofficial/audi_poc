@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rds-operator
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rds-operator
+  template:
+    metadata:
+      labels:
+        app: rds-operator
+    spec:
+      serviceAccountName: rds-operator-sa  # Use the RBAC-configured ServiceAccount
+      containers:
+        - name: rds-operator
+          image: <your-dockerhub-username>/aws-rds-operator:latest
+          imagePullPolicy: Always

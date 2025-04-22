@@ -1,0 +1,12 @@
+apiVersion: aws.audi.de/v1
+kind: RDSInstance
+metadata:
+  name: dev-database
+  namespace: dev  # Namespace corresponds to stage (dev, int, pre-live)
+spec:
+  name: devdb
+  stage: dev	# Stage to indicate env (pre-live, int, dev)
+  engine: postgres
+  instanceClass: db.t3.micro
+  allocatedStorage: 20
+  username: admin

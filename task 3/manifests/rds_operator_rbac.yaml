@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rds-operator-clusterrole
+rules:
+  # Manage RDSInstance custom resources across all namespaces
+  - apiGroups: ["aws.audi.de"]
+    resources: ["rdsinstances"]
+    verbs: ["get", "list", "watch", "create", "update", "delete"]
+  # Manage Secrets across all namespaces
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "update", "delete", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rds-operator-clusterrolebinding
+subjects:
+  - kind: ServiceAccount
+    name: rds-operator-sa
+    namespace: default  # Namespace where the operator runs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rds-operator-clusterrole
