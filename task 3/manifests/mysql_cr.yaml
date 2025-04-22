@@ -1,0 +1,12 @@
+apiVersion: aws.audi.de/v1
+kind: RDSInstance
+metadata:
+  name: int-database
+  namespace: int  # Namespace corresponds to stage (dev, int, pre-live)
+spec:
+  name: intdb
+  stage: int	# Stage to indicate env (pre-live, int, dev)
+  engine: mysql
+  instanceClass: db.t3.micro
+  allocatedStorage: 20
+  username: admin # Default username

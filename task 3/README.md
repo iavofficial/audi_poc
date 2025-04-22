@@ -21,6 +21,7 @@ Features:
 <pre> <code>
 task 3/
 ├── manifests/ # All Kubernetes manifests (CRD, RBAC, Deployments) 
+│    ├── mysql_cr.yaml
 │    ├── postgres_cr.yaml
 │    ├── rds_operator_deploy.yaml  
 │    ├── rds_operator_irsa.yaml  
@@ -93,13 +94,21 @@ Create an RDSInstance custom resource in dev env with postgres as DB engine.
 ```bash
 kubectl apply -f manifests/postgres_cr.yaml
 ```
-Note: DB engine, namespace/stage, instance size, storage among others can be customized.
+Note: namespace/stage, instance size, storage among others can be customized.
 
+**OR**
+
+Create an RDSInstance custom resource in int env with mysql as DB engine.
+```bash
+kubectl apply -f manifests/mysql_cr.yaml
+```
+Note: namespace/stage, instance size, storage among others can be customized.
 
 ### 5. Delete the RDS CR along with its credentials
 ```bash
 kubectl delete rdsinstance dev-database -n dev
 ```
+Note: DB name to be adjusted corresponding to what was deployed in ***Step 4***
 
 ## Validation
 ### Check operator pod running in the `default` namespace
