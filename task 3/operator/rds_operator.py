@@ -1,3 +1,5 @@
+# copyright IAV GmbH 2025
+
 import kopf
 import boto3
 import secrets
