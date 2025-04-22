@@ -67,9 +67,6 @@ kubectl get nodes
 - IAM Role for Service Account (IRSA)
 
 ## Installation Steps
-```bash
-cd task 3/
-```
 ### 1. Deploy the Custom Resource Definition (CRD)
 ```bash
 kubectl apply -f manifests/rdsinstance_crd.yaml
