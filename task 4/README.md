@@ -1,4 +1,4 @@
-**Reqrirement:** 
+**Requirement:** 
 
 Configuration and deployment of the OTEL collector that will collect logs, metrics and span - and store them in a multi tenant Grafana stack deployment.
 
