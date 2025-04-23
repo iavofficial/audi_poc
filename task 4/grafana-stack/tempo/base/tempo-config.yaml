@@ -1,0 +1,13 @@
+multitenancy_enabled: true
+auth_enabled: true
+server:
+  grpc_listen_port: 9091
+  http_listen_port: 9090
+distributors:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318

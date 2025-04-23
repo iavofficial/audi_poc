@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir
+  namespace: monitoring
+  labels:
+    app: mimir
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mimir
+  template:
+    metadata:
+      labels:
+        app: mimir
+    spec:
+      containers:
+        - name: mimir
+          image: grafana/mimir:latest
+          args:
+            - "-config.file=/etc/mimir/config.yaml"
+          ports:
+            - containerPort: 9009
+          volumeMounts:
+            - name: config
+              mountPath: /etc/mimir
+      volumes:
+        - name: config
+          configMap:
+            name: mimir-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimir-config
+  namespace: monitoring
+data:
+  config.yaml: |
+    server:
+      http_listen_port: 9009
+
+    distributor:
+      ring:
+        kvstore:
+          store: inmemory
+        replication_factor: 1
+
+    ingester:
+      lifecycler:
+        ring:
+          kvstore:
+            store: inmemory
+          replication_factor: 1
+
+    storage:
+      engine: chunks
+      chunks:
+        backend: filesystem
+        filesystem:
+          directory: /tmp/mimir/chunks
+
