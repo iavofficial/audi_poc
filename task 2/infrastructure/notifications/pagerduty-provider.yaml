@@ -1,0 +1,10 @@
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: pagerduty
+  namespace: default
+spec:
+  type: pagerduty
+  address: https://events.pagerduty.com
+  channel: <integrationKey>

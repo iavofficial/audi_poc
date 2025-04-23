@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podinfo-repository
+  namespace: team1
+data:
+  repository: "https://ghcr.io/stefanprodan/podinfo"

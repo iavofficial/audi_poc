@@ -1,0 +1,10 @@
+replicaCount: 1
+image:
+  tag: "6.0.0-beta"
+resources:
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
