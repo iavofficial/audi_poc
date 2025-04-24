@@ -8,13 +8,14 @@ This repository contains a **Custom Kubernetes Operator** designed to manage **T
 
 1. [Overview](#overview)
 2. [Features](#features)
-3. [Pre-requisites](#pre-requisites)
-4. [How the Operator works](#how-the-operator-works)
-5. [Setup and Installation](#setup-and-installation)
-6. [Defining Topics and ACLs](#defining-topics-and-acls)
-7. [Testing](#testing)
-8. [Known Limitations](#known-limitations)
-9. [Project Structure](#project-structure)
+3. [Assumptions and Limitations](#assumptions-and-limitations)
+4. [Pre-requisites](#pre-requisites)
+5. [How the Operator works](#how-the-operator-works)
+6. [Setup and Installation](#setup-and-installation)
+7. [Defining Topics and ACLs](#defining-topics-and-acls)
+8. [Testing](#testing)
+9. [Known Limitations](#known-limitations)
+10. [Project Structure](#project-structure)
 
 ---
 
@@ -42,6 +43,21 @@ The **AWS MSK Kubernetes Operator** simplifies the operational tasks of creating
 
 ---
 
+## Assumptions and Limitations
+
+### Assumptions
+
+1. The operator assumes that an AWS MSK Cluster is preconfigured and accessible via the provided `clusterArn` in the `Topic` and `ACL` CRDs.
+2. AWS SSO or other supported AWS authentication mechanisms (e.g., IAM roles, environment variables) are properly configured for the `boto3` SDK to function.
+3. The certificates (`client.crt`, `client.key`, `ca.crt`) provided as Kubernetes Secrets (`msk-certificates`) are not directly used by the operator but are included for completeness to support typical Kafka client tools.
+
+### Limitations
+
+1. AWS MSK APIs do not support dynamic updates to existing Kafka topics such as partition adjustments or replication factor changes.
+2. Error-handling within the operator focuses on logging; additional error recovery mechanisms may need to be implemented externally.
+
+---
+
 ## Pre-requisites
 
 Ensure the following are set up before proceeding:
@@ -50,28 +66,25 @@ Ensure the following are set up before proceeding:
    - You must configure and deploy an AWS MSK Cluster _before_ using this operator.
    - Retrieve the ARN (Amazon Resource Name) of your Kafka cluster from the AWS Console or CLI, as it will be required for the configuration files.
 2. **AWS Credentials** with sufficient permissions to manage topics and ACLs (`boto3` will use these credentials).
-3. **Certificates Files**:  
-   The operator requires the following certificates for client certificate authentication with AWS MSK:
 
-   - `client.crt`: The client certificate.
-   - `client.key`: The client's private key.
-   - `ca.crt`: The Certificate Authority used to sign the client certificate.
-
-   **If you already have these certificate files** (e.g., provided by your infrastructure team), you can skip the "Certificate Creation" section below.
-
-   **If you need to generate the certificate files yourself** (e.g., for testing or proof-of-concept purposes), follow the steps in the "Certificate Creation" section.
-
-4. **Kubernetes Cluster**:
+3. **Kubernetes Cluster**:
    - Ensure `kubectl` is installed and connected to your cluster.
-5. **Python 3.9+** (if building locally).
+4. **Python 3.9+** (if building locally).
+5. **AWS SSO Authentication**:
+   - Use [AWS SSO](https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html) to authenticate with your AWS account.
+   - Ensure that you are logged into AWS SSO before deploying the operator. The operator uses the `boto3` default session, which automatically retrieves credentials from AWS SSO or other configured credential providers.
+   - You can verify your AWS SSO session is active by running:
+     ```bash
+     aws sso login
+     ```
 
 ---
 
 ## How the Operator works
 
-The Kubernetes operator is implemented in the `audi_operator.py` script using the [`kopf`](https://kopf.readthedocs.io/) library. It acts as the "brain" of the operator by watching for events in Kubernetes resources (`topics` and `acls`) and translating them into AWS MSK API calls.
+The Kubernetes operator is implemented in the `msk_operator.py` script using the [`kopf`](https://kopf.readthedocs.io/) library. It acts as the "brain" of the operator by watching for events in Kubernetes resources (`topics` and `acls`) and translating them into AWS MSK API calls.
 
-### What `audi_operator.py` Does
+### What `msk_operator.py` Does
 
 - Watches Kubernetes Custom Resources (`topics` and `acls`) created using the associated CRDs (`crd-topics.yaml` and `crd-acls.yaml`).
 - Performs **create, update, and delete actions** on Kafka topics and ACLs by interacting with the AWS MSK APIs using the `boto3` SDK.
@@ -79,7 +92,7 @@ The Kubernetes operator is implemented in the `audi_operator.py` script using th
 
 ### How It Handles Events
 
-- When you create, update, or delete a `Topic` or `ACL` Custom Resource in Kubernetes, `kopf` triggers the corresponding handler in `audi_operator.py`:
+- When you create, update, or delete a `Topic` or `ACL` Custom Resource in Kubernetes, `kopf` triggers the corresponding handler in `msk_operator.py`:
   - **Topics**:
     - `create_topic`: Creates a Kafka topic with the specifications in the resource.
     - `update_topic`: Logs warnings (MSK does not support dynamic updates such as partition adjustments).
@@ -91,12 +104,11 @@ The Kubernetes operator is implemented in the `audi_operator.py` script using th
 
 ### How Communication Works
 
-- The operator uses **client certificates** (`client.crt`, `client.key`, `ca.crt`) stored in a Kubernetes Secret (`msk-certificates`) to authenticate itself with the AWS MSK cluster.
-- These certificates are automatically mounted into the operator pod at runtime and used for secure communication.
+The certificates (`client.crt`, `client.key`, `ca.crt`) — stored as a Kubernetes Secret (`msk-certificates`) — are designed for use in secure client authentication with AWS MSK clusters. Typically, these certificates would be configured in a Kafka client library or Kafka command-line tools. However, in the current setup, the operator directly interacts with AWS MSK APIs using the `boto3` SDK, which relies on AWS credentials (e.g., from AWS SSO or other external methods). The certificates are not used for this interaction but are provided as part of the infrastructure setup to support typical Kafka usage scenarios.
 
 ### What Triggers the Operator
 
-- Creating or applying a `Topic` resource (e.g., `kubectl apply -f topic-example.yaml`) will trigger `audi_operator.py` to create that topic in AWS MSK.
+- Creating or applying a `Topic` resource (e.g., `kubectl apply -f topic-example.yaml`) will trigger `msk_operator.py` to create that topic in AWS MSK.
 - Applying or modifying an `ACL` resource similarly creates or adjusts an access control rule on the AWS MSK cluster.
 
 ### Example Workflow
@@ -155,11 +167,11 @@ Action:
 - The operator detects the `create` event for the ACL resource.
 - It calls `msk_client.create_acl` using the `boto3` client to create the ACL in AWS MSK.
 
-These examples demonstrate how audi_operator.py processes Kubernetes Custom Resources and interacts with AWS MSK to manage Kafka topics and ACLs.
+These examples demonstrate how msk_operator.py processes Kubernetes Custom Resources and interacts with AWS MSK to manage Kafka topics and ACLs.
 
 ### Important: Configure AWS Credentials
 
-Before deploying the operator, make sure to configure your AWS credentials in the `src/audi_operator.py` file by replacing the placeholders with valid credentials. Look for the following section in the code:
+Before deploying the operator, make sure to configure your AWS credentials in the `src/msk_operator.py` file by replacing the placeholders with valid credentials. Look for the following section in the code:
 
 ```python
 msk_client = boto3.client(
@@ -310,14 +322,14 @@ kubectl get configmap msk-config
 
 #### **Step 4.1: Build the Docker Image**
 
-Before deploying the Kubernetes operator, you need to first build a Docker image that includes your operator code (`src/audi_operator.py`). Run the following commands to build the image:
+Before deploying the Kubernetes operator, you need to first build a Docker image that includes your operator code (`src/msk_operator.py`). Run the following commands to build the image:
 
 ```bash
 # Navigate to the project root directory
-docker build -t audi-operator:latest .
+docker build -t msk-operator:latest .
 ```
 
-This will create a Docker image with the tag `audi-operator:latest`, which will be used in the deployment.
+This will create a Docker image with the tag `msk-operator:latest`, which will be used in the deployment.
 
 #### **Step 4.2: Push the Docker Image (If Needed)**
 
@@ -325,10 +337,10 @@ If you're using a remote Kubernetes cluster and not running Kubernetes locally (
 
 ```bash
 # Tag your image for Docker Hub (replace with your username)
-docker tag audi-operator:latest <your-docker-hub-username>/audi-operator:latest
+docker tag msk-operator:latest <your-docker-hub-username>/msk-operator:latest
 
 # Push the image to Docker Hub
-docker push <your-docker-hub-username>/audi-operator:latest
+docker push <your-docker-hub-username>/msk-operator:latest
 ```
 
 #### **Step 4.3: Update the Deployment File (If Needed)**
@@ -336,7 +348,7 @@ docker push <your-docker-hub-username>/audi-operator:latest
 If the image name or location has changed (e.g., pushed to Docker Hub or another registry), update the `image` field in `deployment.yaml` to reference the correct image:
 
 ```yaml
-image: <your-docker-hub-username>/audi-operator:latest
+image: <your-docker-hub-username>/msk-operator:latest
 ```
 
 #### **Step 4.4: Deploy the Kubernetes Operator**
@@ -461,7 +473,7 @@ kubectl logs test-pod
 ├── deployment.yaml              # Kubernetes Deployment for the operator
 ├── test-pod.yaml                # Test pod for verifying ConfigMap mount
 ├── src/                         # Source directory for the operator
-│   ├── audi_operator.py         # Main operator logic (implemented using Kopf)
+│   ├── msk_operator.py         # Main operator logic (implemented using Kopf)
 │   ├── certificates/            # x.509 certificates for Client Cert Authentication
 │       ├── client.key
 │       ├── client.crt
@@ -497,7 +509,7 @@ The client requested a **Custom Kubernetes Operator for managing Kafka Topics an
 
 4. **Operator Implementation**:
 
-   - The operator (`src/audi_operator.py`) manages the lifecycle of topics and ACLs using the AWS Python SDK (`boto3`) and `kopf`.
+   - The operator (`src/msk_operator.py`) manages the lifecycle of topics and ACLs using the AWS Python SDK (`boto3`) and `kopf`.
 
 5. **Infrastructure as Code**:
    - A Kubernetes `Deployment` (`deployment.yaml`) is provided to run the operator in a Kubernetes cluster.

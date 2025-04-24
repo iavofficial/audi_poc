@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ .
 
 # Command to run the operator
-CMD ["python", "audi_operator.py"]
+CMD ["python", "msk_operator.py"]

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: audi-operator
+  name: msk-operator
   namespace: default
   annotations:
     kubectl.kubernetes.io/last-applied-configuration: ''
@@ -9,15 +9,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: audi-operator
+      app: msk-operator
   template:
     metadata:
       labels:
-        app: audi-operator
+        app: msk-operator
     spec:
       containers:
-        - name: audi-operator
-          image: audi-operator:latest
+        - name: msk-operator
+          image: msk-operator:latest
           envFrom:
             - configMapRef:
                 name: msk-config

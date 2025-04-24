@@ -8,12 +8,8 @@ import os
 from botocore.exceptions import ClientError
 
 # Initialize AWS MSK client
-msk_client = boto3.client(
-    "kafka",
-    region_name="your-region",
-    aws_access_key_id="your-access-key",
-    aws_secret_access_key="your-secret-key"
-)
+msk_client = boto3.client("kafka")
+
 
 # Define the logic for creating/updating topics
 @kopf.on.create('msk.aws.io', 'v1', 'topics')
