@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - ../namespaces/monitoring.yaml
+  - ../otel-collector/base
+  - ../grafana-stack/tempo/base
+  - ../grafana-stack/loki/base
+  - ../grafana-stack/mimir/base

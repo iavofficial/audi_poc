@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rocket-chat-notifier
+  namespace: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rocket-chat-notifier
+  template:
+    metadata:
+      labels:
+        app: rocket-chat-notifier
+    spec:
+      serviceAccountName: rocket-chat-notifier-sa
+      containers:
+        - name: notifier
+          image: your-docker-registry/rocket-chat-notifier:latest
+          env:
+            - name: ROCKET_CHAT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rocket-chat-secret
+                  key: url
+            - name: ROCKET_CHAT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rocket-chat-secret
+                  key: username
+          ports:
+            - containerPort: 8080

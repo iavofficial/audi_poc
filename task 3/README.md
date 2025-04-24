@@ -8,10 +8,13 @@ provides a DBaaS model where teams can request AWS RDS instances with PostgreSQL
 custom resource in K8s.
 
 Assumptions: 
-- Our solution has been tailored for AWS.
-- An existing AWS EKS Cluster.
+- Our solution has been tailored for AWS. 
+- An existing AWS EKS Cluster in combination with AWS IAM SSO. 
 - 3 environments names have been assumed `pre-live`, `dev` and `int` where the DB would operate.
 - Multiple options of DB engine within RDS are possible, but in our solution we use Postgres and MySQL as examples.
+
+Note: For scenarios using Azure AKS Cluster, something similar can be done with Azure AD (SSO) and storing DB credentials 
+securely in K8s secrets.
 
 Features:
 - Kubernetes Secrets management: The operator securely stores database credentials (username, password, endpoint).
@@ -58,6 +61,10 @@ task 3/
 aws configure sso # To authenticate with AWS SSO.
 ```
 - AWS EKS Cluster is setup and reachable.
+- Set AWS EKS to the SSO user to your region. 
+```bash
+aws eks --region eu-central-1 update-kubeconfig --name aws-eks-cluster-name --profile aws-sso-user-profile
+```
 - `kubectl` CLI installed and configured.
 - To reach existing EKS Cluster
 ```bash
@@ -65,6 +72,7 @@ kubectl get nodes
 ```
 - Proper AWS access setup (IAM Roles or AWS SSO).
 - IAM Role for Service Account (IRSA)
+- Reachable Docker Repository
 
 ## Installation Steps
 ### 1. Deploy the Custom Resource Definition (CRD)

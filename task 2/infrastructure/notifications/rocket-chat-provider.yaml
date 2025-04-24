@@ -1,0 +1,10 @@
+apiVersion: notification.tool/v1
+kind: Provider
+metadata:
+  name: rocket-chat-provider
+  namespace: notifications
+spec:
+  type: rocket-chat
+  url: https://rocket.chat/api
+  credentialsSecretRef:
+    name: rocket-chat-secret

@@ -1,0 +1,55 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: {}
+      http: {}
+      
+processors:
+  batch: {}
+  resource:
+    attributes:
+      - key: tenant_id
+        value: "tenant_1"  # Replace with dynamic mechanism if needed
+        action: insert
+  metricstransform:
+    transformations:
+      - action: update_name
+        new_name: "${original_name}_tenant_1"
+  logstransform:
+    transformations:
+      - action: update_attribute
+        new_key: tenant_id
+        new_value: "tenant_1"  # Replace with dynamic mechanism if needed
+  span/sampler:
+    sampling_percentage: 100  # 1.0 means 100%, use 'sampling_percentage' for clarity
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource, metricstransform]
+      exporters: [prometheus, logging]
+
+    logs:
+      receivers: [otlp]
+      processors: [resource, logstransform]
+      exporters: [logging]
+
+    traces:
+      receivers: [otlp]
+      processors: [resource, span/sampler]
+      exporters: [logging, jaeger]
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8888"
+  logging:
+    loglevel: debug  # Use 'loglevel' or 'verbosity' depending on your collector version
+  jaeger:
+    endpoint: "jaeger:14250"
+    tls:
+      insecure: true  # Add if your Jaeger collector does not use TLS
+  loki:
+    endpoint: "http://0.0.0.0:8888"
+    headers:
+      X-Scope-OrgID: "tenant_id"  # Replace with actual tenant ID or dynamic value
